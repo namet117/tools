@@ -5,7 +5,7 @@
 
 ### 使用方法
  ```shell
- curl -O http://tool.namet.xyz/install.sh && sudo ./install.sh
+ curl -O http://tool.namet.xyz/install.sh && sudo bash install.sh
  ```
 
 ### 安装的软件
