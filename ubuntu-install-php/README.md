@@ -3,6 +3,11 @@
 ### 系统要求
 `Ubuntu-16.04`或`Ubuntu-18.04`
 
+### 使用方法
+ ```shell
+ curl -O http://tool.namet.xyz/install.sh && sudo ./install.sh
+ ```
+
 ### 安装的软件
 * nginx
 * MySQL

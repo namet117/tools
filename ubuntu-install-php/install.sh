@@ -55,9 +55,7 @@ apt update
 
 # add php repository
 # apt install -y software-properties-common apt-transport-https lsb-release ca-certificates
-
 # add-apt-repository -y ppa:ondrej/php
-
 # apt update
 
 # install git php mysql nginx redis
