@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -n "$1" ]; then
+    T_PHP_VERSION=$1;
+else
+    T_PHP_VERSION='7.2';
+fi
+
 source /etc/os-release
 
 source_file='/etc/apt/sources.list';
