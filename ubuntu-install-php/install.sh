@@ -1,21 +1,27 @@
 #!/bin/bash
 
-if [ -n "$1" ]; then
-    T_PHP_VERSION=$1;
-else
-    T_PHP_VERSION='7.2';
-fi
+function changeAptSource ()
+{
+    release_info_file=/etc/os-release;
+    test -f $release_info_file;
 
-source /etc/os-release
+    if [ $? != '0' ]; then
+        echoVersionAlert;
+        return 1;
+    fi
+    source $release_info_file;
+    if [ $NAME != 'Ubuntu' ]; then
+        echoVersionAlert;
+        return 1;
+    fi
 
-source_file='/etc/apt/sources.list';
+    source_file='/etc/apt/sources.list';
+    cp "${source_file}" /etc/apt/sources.list.bak
 
-cp "${source_file}" /etc/apt/sources.list.bak
-
-# use aliyun-mirror
-case $VERSION_ID in
-18.04)
-    cat>"${source_file}"<<EOF
+    # use aliyun-mirror
+    case $VERSION_ID in
+    18.04)
+        cat>"${source_file}"<<EOF
 # aliyun mirror
 deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
 deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
@@ -28,9 +34,9 @@ deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted univers
 deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
 EOF
-    ;;
-16.04)
-    cat>"${source_file}"<<EOF
+        ;;
+    16.04)
+        cat>"${source_file}"<<EOF
 # deb cdrom:[Ubuntu 16.04 LTS _Xenial Xerus_ - Release amd64 (20160420.1)]/ xenial main restricted
 deb-src http://archive.ubuntu.com/ubuntu xenial main restricted #Added by software-properties
 deb http://mirrors.aliyun.com/ubuntu/ xenial main restricted
@@ -50,14 +56,22 @@ deb-src http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted multiv
 deb http://mirrors.aliyun.com/ubuntu/ xenial-security universe
 deb http://mirrors.aliyun.com/ubuntu/ xenial-security multiverse
 EOF
-    ;;
-*)
-    echo 'your system is not ubuntu(16.04 or 18.04)';
-    exit 1
-    ;;
-esac
+        ;;
+    *)
+        echoVersionAlert;
+        return 1;
+        ;;
+    esac
+}
 
-apt update
+function echoVersionAlert ()
+{
+    echo -e "\033[31m Sorry, These mirror srouce only can be used in Ubuntu 16.04/18.04 ! \033[0m";
+}
+
+changeAptSource;
+
+exit 1;
 
 # add php repository
 # apt install -y software-properties-common apt-transport-https lsb-release ca-certificates
