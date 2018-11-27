@@ -1,5 +1,34 @@
 #!/bin/bash
 
+# Step 1: Select PHP VERSION
+echo -e "\033[33m select php version: \033[0m"
+echo '1：Install php version 5.6';
+echo '2：Install php version 7.0';
+echo '3：Install php version 7.1';
+echo '4：Install php version 7.2';
+echo '';
+read -p 'Enter your choice (1, 2, 3, 4)：' INPUT_PHPVERSION;
+
+case "${INPUT_PHPVERSION}" in
+    1)
+        PHPVERSION=5.6
+        ;;
+    2)
+        PHPVERSION=7.0
+        ;;
+    3)
+        PHPVERSION=7.1
+        ;;
+    4)
+        PHPVERSION=7.2
+        ;;
+    *)
+        echo -e "\033[31m Wrong Selected! \033[0m";
+        exit 1;
+        ;;
+esac
+
+# Step 2: Use Alibaba Mirror
 release_info_file=/etc/os-release;
 test -f $release_info_file;
 
@@ -16,10 +45,13 @@ fi
 source_file='/etc/apt/sources.list';
 cp "${source_file}" /etc/apt/sources.list.bak
 
-# use aliyun-mirror
-case $VERSION_ID in
-18.04)
-    cat>"${source_file}"<<EOF
+if [[ $(cat "${source_file}" | grep 'aliyun.com') == '' ]]; then
+    echo -e "\033[33m apt source use aliyun mirror...... \033[0m";
+
+    # use aliyun-mirror
+    case $VERSION_ID in
+    18.04)
+        cat>"${source_file}"<<EOF
 # aliyun mirror
 deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
 deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
@@ -32,9 +64,9 @@ deb-src http://mirrors.aliyun.com/ubuntu/ bionic-updates main restricted univers
 deb-src http://mirrors.aliyun.com/ubuntu/ bionic-proposed main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ bionic-backports main restricted universe multiverse
 EOF
-    ;;
-16.04)
-    cat>"${source_file}"<<EOF
+        ;;
+    16.04)
+        cat>"${source_file}"<<EOF
 # deb cdrom:[Ubuntu 16.04 LTS _Xenial Xerus_ - Release amd64 (20160420.1)]/ xenial main restricted
 deb-src http://archive.ubuntu.com/ubuntu xenial main restricted #Added by software-properties
 deb http://mirrors.aliyun.com/ubuntu/ xenial main restricted
@@ -54,28 +86,30 @@ deb-src http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted multiv
 deb http://mirrors.aliyun.com/ubuntu/ xenial-security universe
 deb http://mirrors.aliyun.com/ubuntu/ xenial-security multiverse
 EOF
-    ;;
-*)
-    echo -e "\033[31m Sorry, This shell only can be used in Ubuntu 16.04/18.04 ! \033[0m";
-    return 1;
-    ;;
-esac
+        ;;
+    esac
+
+fi
 
 # specify php version
-read -p "which php version to install：" PHP_VERSION;
-PHP_VERSION=${PHP_VERSION:-'7.2'};
+PHP_VERSION=${PHPVERSION:-'7.2'};
 
-# add php repository
-apt install -y software-properties-common apt-transport-https lsb-release ca-certificates
-add-apt-repository -y ppa:ondrej/php
-apt update
+# Step 3: add php repository
+if [[ $(ls '/etc/apt/sources.list.d' | grep 'ondrej') == '' ]];then
+    echo -e "\033[33m adding php repository ... \033[0m"
 
-# install git php mysql nginx redis
+    apt install -y software-properties-common apt-transport-https lsb-release ca-certificates
+    add-apt-repository -y ppa:ondrej/php
+    apt update
+fi
+
+# Step 4: install git php mysql nginx redis
 apt install -y git \
+curl \
 unzip \
 nginx \
 mysql-server \
-redis \
+redis-server \
 "php${PHP_VERSION}" \
 "php${PHP_VERSION}-bcmath" \
 "php${PHP_VERSION}-bz2" \
@@ -95,26 +129,43 @@ redis \
 "php${PHP_VERSION}-tidy" \
 "php${PHP_VERSION}-xml" \
 "php${PHP_VERSION}-zip" \
+composer \
 libnghttp2-dev
 
-# install php-swoole
+if [ $? != '0' ]; then
+    exit 1;
+fi
+
+# Step 5: install php-swoole
 
 SWOOLE_VERSION=4.2.9;
 
 rm -rf swoole*
 wget -O swoole.zip "https://github.com/swoole/swoole-src/archive/v${SWOOLE_VERSION}.tar.gz"
+
+if [ $? != '0' ]; then
+    exit 1;
+fi
+
 tar -zxvf swoole.zip
 
-cd "swoole-src-${SWOOLE_VERSION}" && phpize && ./configure --enable-openssl --enable-http2 --enable-async-redis --enable-mysqlnd
+cd "swoole-src-${SWOOLE_VERSION}"
+
+"phpize${PHP_VERSION}"
+
+./configure --enable-openssl --enable-http2 --enable-mysqlnd
 
 if [[ $(echo `uname -a` | grep "Microsoft") != "" && -d "/mnt/c" ]]
 then
   sed -i 's/#define HAVE_SIGNALFD 1/\/\/#define HAVE_SIGNALFD 1/g' config.h
 fi
-make clean && make && sudo make install
+if [ $? != '0' ]; then
+    exit 1;
+fi
+
+make clean && make -j && sudo make install
 
 rm -rf "/etc/php/${PHP_VERSION}/mods-available/swoole.ini"
-
 echo "extension=swoole.so" >> "/etc/php/${PHP_VERSION}/mods-available/swoole.ini"
 
 ln -s "/etc/php/${PHP_VERSION}/mods-available/swoole.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/swoole.ini"
