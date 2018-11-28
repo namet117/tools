@@ -8,7 +8,7 @@
  `sudo apt install -y wget`
  确认系统中已有`wget`之后，执行命令开始安装
  ```shell
- wget https://github.com/namet117/tools/raw/master/ubuntu-install-php/install.sh && sudo bash install.sh
+ wget -O install.sh https://github.com/namet117/tools/raw/master/ubuntu-install-php/install.sh && sudo bash install.sh
  ```
 
 ### 安装的软件
