@@ -21,10 +21,10 @@ function _help() {
 current version is : ${CURRENT_VERSION}
 
 Available subcommands are:
-   up        Update your current branch from origin.
-   start     Create a feature branche from master.
-   finish    Finish your feature branche, merge commits into master.
-   publish   Push your current branche to remote origin.
+    up        Update your current branch from origin(use rebase).
+    start     Create a feature branche from master.
+    finish    Finish your feature branche, merge commits into master, and delete the branch.
+    publish   Push your current branche to remote origin.
 ";
 }
 
@@ -39,7 +39,8 @@ function _checkError() {
 function isUnderGitControll() {
     git status > /dev/null 2&>1;
     if [[ $? -gt 0 ]]; then
-       exit 2;
+        e 'current dir is not under git controll!';
+        exit 2;
     fi
 }
 
@@ -53,7 +54,8 @@ function hasUncommitFiles() {
 
 # 更新当前工作空间
 function updateWorkSpace() {
-    git pull
+    git fetch;
+    git rebase;
 }
 
 # 开启一个新分支
