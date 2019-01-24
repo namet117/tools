@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # 当前版本号
-CURRENT_VERSION='0.1-dev';
+CURRENT_VERSION='0.1-dev'
 # 上个命令输出内容
-LAST_COMMAND_OUTPUT='';
+LAST_COMMAND_OUTPUT=''
 
 # 输出绿色内容
 function s() {
