@@ -147,18 +147,12 @@ function publishToOrigin() {
 
 # 展示Log
 function showLog() {
-    git log --no-merges --color --stat \ 
-        --graph --date=format:'%Y-%m-%d %H:%M:%S' \ 
-        --pretty=format:'%Cred%h%Creset %C(yellow)%d%Cbisque %s %Cgreen(%cd) %C(bold blue)<%an>%Creset' \ 
-        --abbrev-commit;
+    git log --no-merges --color --stat --graph --date=format:'%Y-%m-%d %H:%M:%S' --pretty=format:'%Cred%h%Creset %C(yellow)%d%Cbisque %s %Cgreen(%cd) %C(bold blue)<%an>%Creset' --abbrev-commit;
 }
 
 # 展示变动文件
 function showFiles() {
-    git log --no-merges --color --name-only \
-        --graph --date=format:'%Y-%m-%d %H:%M:%S' \
-        --pretty=format:'%Cred%h%Creset %C(yellow)%d%Cbisque %s %Cgreen(%cd) %C(bold blue)<%an>%Creset' \
-        --abbrev-commit;
+    git log --no-merges --color --name-only --graph --date=format:'%Y-%m-%d %H:%M:%S' --pretty=format:'%Cred%h%Creset %C(yellow)%d%Cbisque %s %Cgreen(%cd) %C(bold blue)<%an>%Creset' --abbrev-commit;
 }
 
 ##################################################
