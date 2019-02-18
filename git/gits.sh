@@ -113,7 +113,7 @@ function newBranch() {
 
     # 3. 先测试本工作空间是否有未提交的文件
     #hasUncommitFiles;
-    
+
     # 4. 创建分支并切换到新分支
     git checkout -b ${branch_name};
 }
@@ -129,7 +129,7 @@ function finishWork() {
     else
         r=`git checkout master`;
     fi
-    
+
     git merge $target_branch;
 }
 
@@ -140,7 +140,7 @@ function publishToOrigin() {
     if [[ $? -gt 0 ]]; then
         if [[ $(echo $res | grep '') ]]; then
             updateWorkSpace;
-            git push -u origin $current_branch;
+            `git push -u origin $current_branch`;
         fi
     fi
 }
