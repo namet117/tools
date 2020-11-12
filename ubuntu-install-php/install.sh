@@ -1,166 +1,36 @@
 #!/bin/bash
 
-# Step 1: Select PHP VERSION
-echo -e "\033[33m select php version: \033[0m"
-echo '1：Install php version 5.6';
-echo '2：Install php version 7.0';
-echo '3：Install php version 7.1';
-echo '4：Install php version 7.2';
-echo '';
-read -p 'Enter your choice (1, 2, 3, 4)：' INPUT_PHPVERSION;
+sourceUrl="http://repo.huaweicloud.com"
 
-case "${INPUT_PHPVERSION}" in
-    1)
-        PHPVERSION=5.6
-        ;;
-    2)
-        PHPVERSION=7.0
-        ;;
-    3)
-        PHPVERSION=7.1
-        ;;
-    4)
-        PHPVERSION=7.2
-        ;;
-    *)
-        echo -e "\033[31m Wrong Selected! \033[0m";
-        exit 1;
-        ;;
-esac
+# 1. 检查是否已经变更过源地址了
+if [[ $(cat /etc/apt/sources.list | grep "${sourceUrl}") == '' ]]; then 
+    if [[ ls /etc/apt | grep 'sources.list.backup' ]]; then
+        cp /etc/apt/sources.list /etc/apt/sources.list.backup;
+    fi
 
-# Step 2: Use China Mirror
-release_info_file=/etc/os-release;
-test -f $release_info_file;
-
-if [ $? != '0' ]; then
-    echo -e "\033[31m Sorry, This shell only can be used in Ubuntu 16.04/18.04 ! \033[0m";
-    return 1;
-fi
-source $release_info_file;
-if [ $NAME != 'Ubuntu' ]; then
-    echo -e "\033[31m Sorry, This shell only can be used in Ubuntu 16.04/18.04 ! \033[0m";
-    return 1;
+    sed -i "s@http://.*archive.ubuntu.com@${sourceUrl}@g" /etc/apt/sources.list
+    sed -i "s@http://.*security.ubuntu.com@${sourceUrl}@g" /etc/apt/sources.list
 fi
 
-source_file='/etc/apt/sources.list';
-cp "${source_file}" /etc/apt/sources.list.bak
+# 2. 更新软件版本
+apt update 
 
-if [[ $(cat "${source_file}" | grep '163.com') == '' ]]; then
-    echo -e "\033[33m apt source use 163.com mirror...... \033[0m";
-
-    # use aliyun-mirror
-    case $VERSION_ID in
-    18.04)
-        cat>"${source_file}"<<EOF
-deb http://mirrors.163.com/ubuntu/ bionic main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ bionic-security main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ bionic-updates main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ bionic-proposed main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ bionic-backports main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ bionic main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ bionic-security main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ bionic-updates main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ bionic-proposed main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ bionic-backports main restricted universe multiverse
-EOF
-        ;;
-    16.04)
-        cat>"${source_file}"<<EOF
-deb http://mirrors.163.com/ubuntu/ xenial main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ xenial-security main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ xenial-updates main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ xenial-proposed main restricted universe multiverse
-deb http://mirrors.163.com/ubuntu/ xenial-backports main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ xenial main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ xenial-security main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ xenial-updates main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ xenial-proposed main restricted universe multiverse
-deb-src http://mirrors.163.com/ubuntu/ xenial-backports main restricted universe multiverse
-EOF
-        ;;
-    esac
-
+# 3. 安装lnmp
+if [[ $(which php) == '' ]] || [[ $(which nginx) == '' ]] || [[ $(which mysql) == '' ]] || [[ $(which redis-cli) == '' ]]; then
+    apt install -y git curl unzip \
+        nginx mysql-server mysql-client redis-server \
+        php php-cli php-fpm php-dev libnghttp2-dev \
+        php-bcmath php-bz2 php-curl php-gd php-json php-imap php-mbstring \
+        php-odbc php-soap php-pgsql php-sqlite3 php-xml php-tidy php-zip;
 fi
 
-apt update
-
-# specify php version
-PHP_VERSION=${PHPVERSION:-'7.2'};
-
-# Step 3: add php repository
-if [[ $(ls '/etc/apt/sources.list.d' | grep 'ondrej') == '' ]];then
-    echo -e "\033[33m adding php repository ... \033[0m"
-
-    apt install -y software-properties-common apt-transport-https lsb-release ca-certificates
-    add-apt-repository -y ppa:ondrej/php
-    apt update
+# 4. 安装composer
+if [[ $(which composer) == '' ]]; then 
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    php -r "if (hash_file('sha384', 'composer-setup.php') === 'c31c1e292ad7be5f49291169c0ac8f683499edddcfd4e42232982d0fd193004208a58ff6f353fde0012d35fdd72bc394') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+    php composer-setup.php
+    php -r "unlink('composer-setup.php');"
 fi
 
-# Step 4: install git php mysql nginx redis
-apt install -y git \
-curl \
-unzip \
-nginx \
-mysql-server \
-redis-server \
-"php${PHP_VERSION}" \
-"php${PHP_VERSION}-bcmath" \
-"php${PHP_VERSION}-bz2" \
-"php${PHP_VERSION}-cli" \
-"php${PHP_VERSION}-curl" \
-"php${PHP_VERSION}-dev" \
-"php${PHP_VERSION}-fpm" \
-"php${PHP_VERSION}-gd" \
-"php${PHP_VERSION}-imap" \
-"php${PHP_VERSION}-json" \
-"php${PHP_VERSION}-mbstring" \
-"php${PHP_VERSION}-mysql" \
-"php${PHP_VERSION}-odbc" \
-"php${PHP_VERSION}-pgsql" \
-"php${PHP_VERSION}-soap" \
-"php${PHP_VERSION}-sqlite3" \
-"php${PHP_VERSION}-tidy" \
-"php${PHP_VERSION}-xml" \
-"php${PHP_VERSION}-zip" \
-composer \
-libnghttp2-dev
-
-if [ $? != '0' ]; then
-    exit 1;
-fi
-
-# Step 5: install php-swoole
-
-SWOOLE_VERSION=4.2.9;
-
-rm -rf swoole*
-wget -O swoole.zip "https://github.com/swoole/swoole-src/archive/v${SWOOLE_VERSION}.tar.gz"
-
-if [ $? != '0' ]; then
-    exit 1;
-fi
-
-tar -zxvf swoole.zip
-
-cd "swoole-src-${SWOOLE_VERSION}"
-
-"phpize${PHP_VERSION}"
-
-./configure --enable-openssl --enable-http2 --enable-mysqlnd
-
-if [[ $(echo `uname -a` | grep "Microsoft") != "" && -d "/mnt/c" ]]
-then
-  sed -i 's/#define HAVE_SIGNALFD 1/\/\/#define HAVE_SIGNALFD 1/g' config.h
-fi
-if [ $? != '0' ]; then
-    exit 1;
-fi
-
-make clean && make -j && sudo make install
-
-rm -rf "/etc/php/${PHP_VERSION}/mods-available/swoole.ini"
-echo "extension=swoole.so" >> "/etc/php/${PHP_VERSION}/mods-available/swoole.ini"
-
-ln -s "/etc/php/${PHP_VERSION}/mods-available/swoole.ini" "/etc/php/${PHP_VERSION}/cli/conf.d/swoole.ini"
-
-exit 0
+# 5. 安装Swoole
+# TODO
