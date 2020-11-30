@@ -40,17 +40,28 @@ sudo apt install -y git vim unzip \
 
 
 # Install Nodejs
-curl -o /tmp/node.tar.xz -L https://nodejs.org/dist/v11.9.0/node-v11.9.0-linux-x64.tar.xz
 
-xz -d /tmp/node.tar.xz
-
-tar -xvf /tmp/node.tar
-
-mv /tmp/node /opt/node
-
-ln -s /opt/node/bin/node /usr/bin/node
-ln -s /opt/node/bin/npm /usr/bin/npm
-ln -s /opt/node/bin/npx /usr/bin/npx
+NODE_VERSION=15.3.0;
+# if [[ $(node -v) != "v${NODE_VERSION}" ]]; then
+FILE_NAME="node-v${NODE_VERSION}-linux-x64";
+DIST_PATH="/usr/share/node/${NODE_VERSION}";
+cd /tmp;
+curl -OL https://repo.huaweicloud.com/nodejs/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz;
+xz -d ${FILE_NAME}.tar.xz;
+tar -xvf ${FILE_NAME}.tar;
+if [[ $(ll ${DIST_PATH}) != '' ]]; then
+    sudo rm -rf $DIST_PATH;
+fi
+sudo mkdir -p $DIST_PATH;
+sudo mv $FILE_NAME $DIST_PATH;
+sudo rm /etc/alternatives/node /etc/alternatives/npm /etc/alternatives/npx /usr/bin/node /usr/bin/npm /usr/bin/npx;
+sudo ln -s $DIST_PATH/bin/node /etc/alternatives/node;
+sudo ln -s $DIST_PATH/bin/npx /etc/alternatives/npx;
+sudo ln -s $DIST_PATH/bin/npm /etc/alternatives/npm;
+sudo ln -s /etc/alternatives/node /usr/bin/node;
+sudo ln -s /etc/alternatives/npx /usr/bin/npx;
+sudo ln -s /etc/alternatives/npm /usr/bin/npm;
+# fi
 
 # VIM config
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
