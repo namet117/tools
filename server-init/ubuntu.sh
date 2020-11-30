@@ -44,15 +44,16 @@ sudo apt install -y git vim unzip \
 NODE_VERSION=15.3.0;
 # if [[ $(node -v) != "v${NODE_VERSION}" ]]; then
 FILE_NAME="node-v${NODE_VERSION}-linux-x64";
-DIST_PATH="/usr/share/node/${NODE_VERSION}";
+DIST_DIR="/usr/share/node";
+DIST_PATH=${DIST_DIR}/${NODE_VERSION};
 cd /tmp;
 curl -OL https://repo.huaweicloud.com/nodejs/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz;
 xz -d ${FILE_NAME}.tar.xz;
 tar -xvf ${FILE_NAME}.tar;
-if [[ $(ll ${DIST_PATH}) != '' ]]; then
+sudo mkdir -p /usr/share/node;
+if [[ $(ls $DIST_DIR | grep $NODE_VERSION) != '' ]]; then
     sudo rm -rf $DIST_PATH;
 fi
-sudo mkdir -p $DIST_PATH;
 sudo mv $FILE_NAME $DIST_PATH;
 sudo rm /etc/alternatives/node /etc/alternatives/npm /etc/alternatives/npx /usr/bin/node /usr/bin/npm /usr/bin/npx;
 sudo ln -s $DIST_PATH/bin/node /etc/alternatives/node;
