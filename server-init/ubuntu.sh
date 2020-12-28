@@ -35,7 +35,7 @@ sudo apt update
 sudo apt install -y git vim unzip \
         nginx mysql-server mysql-client redis-server \
         php php-cli php-fpm php-dev libnghttp2-dev \
-        php-bcmath php-bz2 php-curl php-gd php-json php-imap php-mbstring \
+        php-bcmath php-bz2 php-curl php-gd php-json php-imap php-mbstring php-mysql \
         php-odbc php-soap php-pgsql php-sqlite3 php-xml php-tidy php-zip;
 
 
