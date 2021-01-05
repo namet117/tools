@@ -18,7 +18,8 @@ showInfo() {
 
 # 0. 判断是否为Ubuntu
 if [[ $(cat /etc/os-release | grep "NAME=\"Ubuntu\"") == '' ]]; then
-
+    echo -e "\e[1;31m [ Error ] NOT UBUNTU!!\e[0m";
+    exit 1;
 if
 
 # 1. 更换源为国内的地址
@@ -27,20 +28,27 @@ if [[ $(cat /etc/apt/sources.list | grep "ubuntu.com") != '' ]]; then
     sudo sed -i "s@http://.*archive.ubuntu.com@http://repo.huaweicloud.com@g" /etc/apt/sources.list;
     sudo sed -i "s@http://.*security.ubuntu.com@http://repo.huaweicloud.com@g" /etc/apt/sources.list;
 fi
-
-# 2. 更新
 sudo apt update
 
+# 2. 安装软件
+sudo apt install -y git vim unzip zsh nginx mysql-server mysql-client redis-server libnghttp2-dev;
 
-sudo apt install -y git vim unzip \
-        nginx mysql-server mysql-client redis-server \
-        php php-cli php-fpm php-dev libnghttp2-dev \
-        php-bcmath php-bz2 php-curl php-gd php-json php-imap php-mbstring php-mysql \
-        php-odbc php-soap php-pgsql php-sqlite3 php-xml php-tidy php-zip;
+# 3. 安装php
+
+sudo apt install -y software-properties-common;
+sudo sudo add-apt-repository ppa:ondrej/php -y;
+sudo apt update;
+
+PHP_VERSION=7.4
+sudo apt install -y  \
+    php${PHP_VERSION} php${PHP_VERSION}-cli php${PHP_VERSION}-fpm php${PHP_VERSION}-dev  \
+    php${PHP_VERSION}-bcmath php${PHP_VERSION}-bz2 php${PHP_VERSION}-curl php${PHP_VERSION}-gd \
+    php${PHP_VERSION}-json php${PHP_VERSION}-imap php${PHP_VERSION}-mbstring php${PHP_VERSION}-mysql \
+    php${PHP_VERSION}-odbc php${PHP_VERSION}-soap php${PHP_VERSION}-pgsql php${PHP_VERSION}-sqlite3 \
+    php${PHP_VERSION}-xml php${PHP_VERSION}-tidy php${PHP_VERSION}-zip;
 
 
-# Install Nodejs
-
+# 4. 安装Node
 NODE_VERSION=15.3.0;
 # if [[ $(node -v) != "v${NODE_VERSION}" ]]; then
 FILE_NAME="node-v${NODE_VERSION}-linux-x64";
@@ -64,7 +72,12 @@ sudo ln -s /etc/alternatives/npx /usr/bin/npx;
 sudo ln -s /etc/alternatives/npm /usr/bin/npm;
 # fi
 
-# VIM config
+# 5. 安装oh-my-zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+git clone git://github.com/zsh-users/zsh-autosuggestions $ZSH_CUSTOM/plugins/zsh-autosuggestions
+git clone git://github.com/zsh-users/zsh-syntax-highlighting $ZSH_CUSTOM/plugins/zsh-syntax-highlighting
+
+# 6. 配置VIM
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 curl -o ~/namet.vim -L https://raw.githubusercontent.com/namet117/vimrc/master/namet.vim
